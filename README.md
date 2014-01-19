@@ -1,6 +1,6 @@
 添加到Aria2（toAria2）
 ======
-用Aria2接管chrome的下载。
+用Aria2接管chrome的下载。谷歌市场地址：https://chrome.google.com/webstore/detail/%E6%B7%BB%E5%8A%A0%E5%88%B0aria2/nimeojfecmndgolmlmjghjmbpdkhhogl?hl=zh-CN
 
 使用说明
 ======
