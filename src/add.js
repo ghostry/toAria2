@@ -50,7 +50,7 @@ function combination(down) {
 		"id": (new Date()).getTime().toString(),
 		"params": [[down.finalUrl], {
 			"out": decodeURIComponent(down.filename),
-			"header":"Referer: " + down.referer
+			"header":"Referer: " + down.referrer
 		}]
 	}];
 	return post_obj;
