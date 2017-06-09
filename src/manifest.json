@@ -15,10 +15,12 @@
   "options_page": "options.html",
   "permissions": [
     "downloads",
-    "http://*/","notifications"
+    "http://*/",
+    "notifications",
+    "contextMenus"
   ],
   "background": {
     "scripts": ["add.js"],
-    "persistent": false
+    "persistent": true
   }
 }
