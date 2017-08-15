@@ -1,0 +1,11 @@
+适用于Windows
+--win+r
+--gpedit.msc
+--计算机配置>管理模板>右键>添加删除模板
+--选择chrome.adm
+--打开chrome应用扩展界面.toaria2.crx拖进去
+--记下id
+--win+r
+--gpedit.msc
+--计算机配置>管理模板>经典管理模板(ADM)>Google>Google chrome>扩展程序>配置扩展程序安装白名单
+--选启用,在要从黑名单排除的扩展程序id中添加刚刚记下的id
