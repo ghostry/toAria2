@@ -15,13 +15,26 @@ function changeEnable(tab){
     }
     enabled = localStorage["enabled"];
 }
+function showEnable(){
+    enabled = localStorage["enabled"];
+    if (enabled==1) {
+        chrome.browserAction.setBadgeText({"text": 'en'});
+        chrome.browserAction.setBadgeBackgroundColor({color:'#008800'});
+    } else {
+        chrome.browserAction.setBadgeText({"text": 'dis'});
+        chrome.browserAction.setBadgeBackgroundColor({color:'#880000'});
+    }
+}
 function add(down) {
     size = localStorage["size"] * 1024 * 1024;
     path = localStorage["path"];
-    console.debug(down);
+    enabled = localStorage["enabled"];
+    //console.debug(down);
     if (!path || !size) {
         alert("插件尚未配置");
         chrome.tabs.create({"url": "options.html"}, function (s) { });
+	localStorage['enabled'] = 0;
+	showEnable();
         return 0;
     }
     if (!enabled) {
@@ -104,10 +117,4 @@ function rightadd(info, tab) {
     }
 }
 chrome.contextMenus.create({"title": "添加到Aria2", "contexts": ["link"], "onclick": rightadd});
-    if (enabled==1) {
-        chrome.browserAction.setBadgeText({"text": 'en'});
-        chrome.browserAction.setBadgeBackgroundColor({color:'#008800'});
-    } else {
-        chrome.browserAction.setBadgeText({"text": 'dis'});
-        chrome.browserAction.setBadgeBackgroundColor({color:'#880000'});
-    }
+showEnable();

@@ -1,5 +1,6 @@
 $(document).ready(function() {
 	var favorite = localStorage["path"];
+	var enabled = localStorage["enabled"];
 	if (favorite) {
 		$('#path').val(favorite);
 	}
@@ -21,7 +22,8 @@ $(document).ready(function() {
 			return false;
 		} else {
 			localStorage[name] = this.tmp;
-			localStorage['enabled'] = true;
+			localStorage['enabled'] = 1;
+			showEnable();
 			show(name, "已保存");
 		}
 	}
@@ -30,5 +32,15 @@ $(document).ready(function() {
 		setTimeout(function() {
 			$('#' + name).next('span').html('');
 		}, 3000);
+	}
+	function showEnable(){
+	    enabled = localStorage["enabled"];
+	    if (enabled==1) {
+		chrome.browserAction.setBadgeText({"text": 'en'});
+		chrome.browserAction.setBadgeBackgroundColor({color:'#008800'});
+	    } else {
+		chrome.browserAction.setBadgeText({"text": 'dis'});
+		chrome.browserAction.setBadgeBackgroundColor({color:'#880000'});
+	    }
 	}
 });
