@@ -1,11 +1,31 @@
 chrome.downloads.onDeterminingFilename.addListener(add);
+var enabled = localStorage["enabled"];
+chrome.browserAction.onClicked.addListener(changeEnable);
 var size = localStorage["size"] * 1024 * 1024;
 var path = localStorage["path"];
+function changeEnable(tab){
+    if (enabled==1) {
+        chrome.browserAction.setBadgeText({"text": 'dis'});
+        chrome.browserAction.setBadgeBackgroundColor({color:'#880000'});
+        localStorage['enabled'] = 0;
+    } else {
+        chrome.browserAction.setBadgeText({"text": 'en'});
+        chrome.browserAction.setBadgeBackgroundColor({color:'#008800'});
+        localStorage['enabled'] = 1;
+    }
+    enabled = localStorage["enabled"];
+}
 function add(down) {
+    size = localStorage["size"] * 1024 * 1024;
+    path = localStorage["path"];
     console.debug(down);
     if (!path || !size) {
         alert("插件尚未配置");
         chrome.tabs.create({"url": "options.html"}, function (s) { });
+        return 0;
+    }
+    if (!enabled) {
+        //var notification = new Notification("添加到aria2当前暂停", {body: "如需启用点击工具栏中图标"});
         return 0;
     }
     if (Math.abs(down.fileSize) > size) {
@@ -84,3 +104,10 @@ function rightadd(info, tab) {
     }
 }
 chrome.contextMenus.create({"title": "添加到Aria2", "contexts": ["link"], "onclick": rightadd});
+    if (enabled==1) {
+        chrome.browserAction.setBadgeText({"text": 'en'});
+        chrome.browserAction.setBadgeBackgroundColor({color:'#008800'});
+    } else {
+        chrome.browserAction.setBadgeText({"text": 'dis'});
+        chrome.browserAction.setBadgeBackgroundColor({color:'#880000'});
+    }

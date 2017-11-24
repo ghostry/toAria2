@@ -21,6 +21,7 @@ $(document).ready(function() {
 			return false;
 		} else {
 			localStorage[name] = this.tmp;
+			localStorage['enabled'] = true;
 			show(name, "已保存");
 		}
 	}
