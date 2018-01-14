@@ -37,7 +37,7 @@ function add(down) {
 	showEnable();
         return 0;
     }
-    if (!enabled) {
+    if (enabled==0) {
         //var notification = new Notification("添加到aria2当前暂停", {body: "如需启用点击工具栏中图标"});
         return 0;
     }
