@@ -101,7 +101,15 @@ function combination(down) {
 
 function rightadd(info, tab) {
     var down = {filename: ''};
-    down.finalUrl = info.linkUrl;
+    var urlma=/^\s*(http:|https:|ftp:|magnet:\?)/;
+    if (urlma.test(info.linkUrl)){
+        down.finalUrl = info.linkUrl;
+    }else if(urlma.test(info.selectionText)){
+	down.finalUrl = info.selectionText;
+    }else{
+	alert("未发现可以下载的链接地址");
+	return 0;
+    }
     down.referrer = info.pageUrl;
     if (!path || !size) {
         alert("插件尚未配置");
@@ -116,5 +124,5 @@ function rightadd(info, tab) {
         var notification = new Notification("成功！", {body: "下载已送往aria2，请前往确认"});
     }
 }
-chrome.contextMenus.create({"title": "添加到Aria2", "contexts": ["link"], "onclick": rightadd});
+chrome.contextMenus.create({"title": "添加到Aria2", "contexts": ["selection", "link"], "onclick": rightadd});
 showEnable();
