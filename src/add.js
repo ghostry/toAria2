@@ -3,26 +3,26 @@ var enabled = localStorage["enabled"];
 chrome.browserAction.onClicked.addListener(changeEnable);
 var size = localStorage["size"] * 1024 * 1024;
 var path = localStorage["path"];
-function changeEnable(tab){
-    if (enabled==1) {
+function changeEnable(tab) {
+    if (enabled == 1) {
         chrome.browserAction.setBadgeText({"text": 'dis'});
-        chrome.browserAction.setBadgeBackgroundColor({color:'#880000'});
+        chrome.browserAction.setBadgeBackgroundColor({color: '#880000'});
         localStorage['enabled'] = 0;
     } else {
         chrome.browserAction.setBadgeText({"text": 'en'});
-        chrome.browserAction.setBadgeBackgroundColor({color:'#008800'});
+        chrome.browserAction.setBadgeBackgroundColor({color: '#008800'});
         localStorage['enabled'] = 1;
     }
     enabled = localStorage["enabled"];
 }
-function showEnable(){
+function showEnable() {
     enabled = localStorage["enabled"];
-    if (enabled==1) {
+    if (enabled == 1) {
         chrome.browserAction.setBadgeText({"text": 'en'});
-        chrome.browserAction.setBadgeBackgroundColor({color:'#008800'});
+        chrome.browserAction.setBadgeBackgroundColor({color: '#008800'});
     } else {
         chrome.browserAction.setBadgeText({"text": 'dis'});
-        chrome.browserAction.setBadgeBackgroundColor({color:'#880000'});
+        chrome.browserAction.setBadgeBackgroundColor({color: '#880000'});
     }
 }
 function add(down) {
@@ -33,11 +33,11 @@ function add(down) {
     if (!path || !size) {
         alert("插件尚未配置");
         chrome.tabs.create({"url": "options.html"}, function (s) { });
-	localStorage['enabled'] = 0;
-	showEnable();
+        localStorage['enabled'] = 0;
+        showEnable();
         return 0;
     }
-    if (enabled==0) {
+    if (enabled == 0) {
         //var notification = new Notification("添加到aria2当前暂停", {body: "如需启用点击工具栏中图标"});
         return 0;
     }
@@ -101,27 +101,46 @@ function combination(down) {
 
 function rightadd(info, tab) {
     var down = {filename: ''};
-    var urlma=/^\s*(http:|https:|ftp:|magnet:\?)/;
-    if (urlma.test(info.linkUrl)){
-        down.finalUrl = info.linkUrl;
-    }else if(urlma.test(info.selectionText)){
-	down.finalUrl = info.selectionText;
-    }else{
-	alert("未发现可以下载的链接地址");
-	return 0;
-    }
     down.referrer = info.pageUrl;
+    var urlma = /^\s*(http:|https:|ftp:|magnet:\?)/;
+    var errorcode = 0;
+    var errnum = 0;
+    var len = 0;
     if (!path || !size) {
         alert("插件尚未配置");
         chrome.tabs.create({"url": "options.html"}, function (s) { });
         return 0;
     }
-    this.aria2_obj = combination(down);
-    var ifpostback = postaria2obj(this.aria2_obj);
-    if (ifpostback == "base64_error") {
-        var notification = new Notification("成功！", {body: "添加任务至 aria2 出错！"});
+    var downarr = info.selectionText.match(/(http:|https:|ftp:|magnet:\?)\S+/g);
+    if (urlma.test(info.linkUrl)) {
+        down.finalUrl = info.linkUrl;
+        len = 1;
+        this.aria2_obj = combination(down);
+        var ifpostback = postaria2obj(this.aria2_obj);
+        if (ifpostback == "base64_error") {
+            errorcode = 1;
+        }
+    } else if (downarr.length >= 1) {
+        len = downarr.length;
+        for (var j = 0; j < len; j++) {
+            down.finalUrl = downarr[j];
+            this.aria2_obj = combination(down);
+            var ifpostback = postaria2obj(this.aria2_obj);
+            if (ifpostback == "base64_error") {
+                errorcode = 2;
+                errnum++;
+            }
+        }
     } else {
-        var notification = new Notification("成功！", {body: "下载已送往aria2，请前往确认"});
+        alert("未发现可以下载的链接地址");
+        return 0;
+    }
+    if (errorcode == 1) {
+        var notification = new Notification("失败！", {body: "添加任务至 aria2 出错！"});
+    } else if (errorcode == 2) {
+        var notification = new Notification("失败！", {body: "添加" + len + "个任务至 aria2 中有" + errnum + "个出错！"});
+    } else {
+        var notification = new Notification("成功！", {body: len + "个下载已送往aria2，请前往确认"});
     }
 }
 chrome.contextMenus.create({"title": "添加到Aria2", "contexts": ["selection", "link"], "onclick": rightadd});
