@@ -133,6 +133,9 @@ function rightadd(info, tab) {
                 errnum++;
             }
         }
+        if (errnum == len) {
+            errorcode = 1;
+        }
     } else {
         alert("未发现可以下载的链接地址");
         return 0;
