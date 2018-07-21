@@ -100,7 +100,7 @@ function combination(down) {
 }
 
 function rightadd(info, tab) {
-    var down = {filename: ''};
+    var down = {filename: ''}, downarr;
     down.referrer = info.pageUrl;
     var urlma = /^\s*(http:|https:|ftp:|magnet:\?)/;
     var errorcode = 0;
@@ -111,7 +111,9 @@ function rightadd(info, tab) {
         chrome.tabs.create({"url": "options.html"}, function (s) { });
         return 0;
     }
-    var downarr = info.selectionText.match(/(http:|https:|ftp:|magnet:\?)\S+/g);
+    if (info.selectionText) {
+        downarr = info.selectionText.match(/(http:|https:|ftp:|magnet:\?)\S+/g);
+    }
     if (urlma.test(info.linkUrl)) {
         down.finalUrl = info.linkUrl;
         len = 1;
