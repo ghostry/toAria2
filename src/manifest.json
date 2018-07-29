@@ -1,6 +1,6 @@
 {
   "name": "添加到aria2",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "manifest_version": 2,
   "description": "把下载添加到aria2",
   "homepage_url": "http://blog.ghostry.cn/",
@@ -23,7 +23,7 @@
     "default_title": "暂停/启用"
   },
   "background": {
-    "scripts": ["add.js"],
+    "scripts": ["decode.js","add.js"],
     "persistent": true
   }
 }

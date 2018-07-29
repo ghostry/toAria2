@@ -26,15 +26,8 @@ function showEnable() {
     }
 }
 function add(down) {
-    size = localStorage["size"] * 1024 * 1024;
-    path = localStorage["path"];
-    enabled = localStorage["enabled"];
     //console.debug(down);
-    if (!path || !size) {
-        alert("插件尚未配置");
-        chrome.tabs.create({"url": "options.html"}, function (s) { });
-        localStorage['enabled'] = 0;
-        showEnable();
+    if (checkconfig() === 0) {
         return 0;
     }
     if (enabled == 0) {
@@ -42,8 +35,7 @@ function add(down) {
         return 0;
     }
     if (Math.abs(down.fileSize) > size) {
-        this.aria2_obj = combination(down);
-        var ifpostback = postaria2obj(this.aria2_obj);
+        var ifpostback = send(down);
         if (ifpostback == "base64_error") {
             var notification = new Notification("成功！", {body: "添加任务至 aria2 出错！"});
         } else {
@@ -51,6 +43,24 @@ function add(down) {
             var notification = new Notification("成功！", {body: "下载已送往aria2，请前往确认"});
         }
     }
+}
+function checkconfig() {
+    size = localStorage["size"] * 1024 * 1024;
+    path = localStorage["path"];
+    enabled = localStorage["enabled"];
+    if (!path || !size) {
+        var notification = new Notification("注意！", {body: "插件尚未配置！"});
+        chrome.tabs.create({"url": "options.html"}, function (s) { });
+        localStorage['enabled'] = 0;
+        showEnable();
+        return 0;
+    } else {
+        return 1;
+    }
+}
+function send(down) {
+    var aria2_obj = combination(down);
+    return postaria2obj(aria2_obj);
 }
 function postaria2obj(addobj) {
     var httppost = new XMLHttpRequest();
@@ -100,35 +110,29 @@ function combination(down) {
 }
 
 function rightadd(info, tab) {
+    if (checkconfig() === 0) {
+        return 0;
+    }
     var down = {filename: ''}, downarr;
     down.referrer = info.pageUrl;
-    var urlma = /^\s*(http:|https:|ftp:|magnet:\?)/;
+    var urlma = /^\s*(http:|https:|ftp:|magnet:|thunder:|flashget:|qqdl:\?)/;
     var errorcode = 0;
     var errnum = 0;
     var len = 0;
-    if (!path || !size) {
-        alert("插件尚未配置");
-        chrome.tabs.create({"url": "options.html"}, function (s) { });
-        return 0;
-    }
     if (info.selectionText) {
-        downarr = info.selectionText.match(/(http:|https:|ftp:|magnet:\?)\S+/g);
+        downarr = info.selectionText.match(/(http:|https:|ftp:|magnet:|thunder:|flashget:|qqdl:\?)\S+/g);
+        len = downarr.length;
     }
     if (urlma.test(info.linkUrl)) {
-        down.finalUrl = info.linkUrl;
+        down.finalUrl = Decryption(info.linkUrl);
         len = 1;
-        this.aria2_obj = combination(down);
-        var ifpostback = postaria2obj(this.aria2_obj);
-        if (ifpostback == "base64_error") {
+        if (send(down) === "base64_error") {
             errorcode = 1;
         }
-    } else if (downarr.length >= 1) {
-        len = downarr.length;
+    } else if (len >= 1) {
         for (var j = 0; j < len; j++) {
-            down.finalUrl = downarr[j];
-            this.aria2_obj = combination(down);
-            var ifpostback = postaria2obj(this.aria2_obj);
-            if (ifpostback == "base64_error") {
+            down.finalUrl = Decryption(downarr[j]);
+            if (send(down) === "base64_error") {
                 errorcode = 2;
                 errnum++;
             }
@@ -137,7 +141,7 @@ function rightadd(info, tab) {
             errorcode = 1;
         }
     } else {
-        alert("未发现可以下载的链接地址");
+        var notification = new Notification("失败！", {body: "未发现可以下载的链接地址！"});
         return 0;
     }
     if (errorcode == 1) {
