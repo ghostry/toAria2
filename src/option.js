@@ -8,6 +8,13 @@ $(document).ready(function() {
 	if (favorite) {
 		$('#size').val(favorite);
 	}
+	
+	var ns = localStorage["notifySuccess"] == "true";
+	if(ns) $("#notifySuccess").attr("checked", ns);
+	$("#notifySuccess").click(function() {
+		localStorage["notifySuccess"] = $("#notifySuccess").attr("checked");
+	});
+	
 	$("#size").blur(function() {
 		save_options('size');
 	});
