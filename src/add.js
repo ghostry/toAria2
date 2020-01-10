@@ -1,30 +1,32 @@
-chrome.downloads.onDeterminingFilename.addListener(add);
 var enabled = localStorage["enabled"];
-chrome.browserAction.onClicked.addListener(changeEnable);
 var size = localStorage["size"] * 1024 * 1024;
 var path = localStorage["path"];
+var token = null;
+
 function changeEnable(tab) {
     if (enabled == 1) {
-        chrome.browserAction.setBadgeText({"text": 'dis'});
-        chrome.browserAction.setBadgeBackgroundColor({color: '#880000'});
+        chrome.browserAction.setBadgeText({ "text": 'dis' });
+        chrome.browserAction.setBadgeBackgroundColor({ color: '#880000' });
         localStorage['enabled'] = 0;
     } else {
-        chrome.browserAction.setBadgeText({"text": 'en'});
-        chrome.browserAction.setBadgeBackgroundColor({color: '#008800'});
+        chrome.browserAction.setBadgeText({ "text": 'en' });
+        chrome.browserAction.setBadgeBackgroundColor({ color: '#008800' });
         localStorage['enabled'] = 1;
     }
     enabled = localStorage["enabled"];
 }
+
 function showEnable() {
     enabled = localStorage["enabled"];
     if (enabled == 1) {
-        chrome.browserAction.setBadgeText({"text": 'en'});
-        chrome.browserAction.setBadgeBackgroundColor({color: '#008800'});
+        chrome.browserAction.setBadgeText({ "text": 'en' });
+        chrome.browserAction.setBadgeBackgroundColor({ color: '#008800' });
     } else {
-        chrome.browserAction.setBadgeText({"text": 'dis'});
-        chrome.browserAction.setBadgeBackgroundColor({color: '#880000'});
+        chrome.browserAction.setBadgeText({ "text": 'dis' });
+        chrome.browserAction.setBadgeBackgroundColor({ color: '#880000' });
     }
 }
+
 function add(down) {
     //console.debug(down);
     if (checkconfig() === 0) {
@@ -37,20 +39,30 @@ function add(down) {
     if (Math.abs(down.fileSize) > size) {
         var ifpostback = send(down);
         if (ifpostback == "base64_error") {
-            var notification = new Notification("成功！", {body: "添加任务至 aria2 出错！"});
+            var notification = new Notification("成功！", { body: "添加任务至 aria2 出错！" });
         } else {
-            chrome.downloads.cancel(down.id, function (s) { });
-            var notification = new Notification("成功！", {body: "下载已送往aria2，请前往确认"});
+            chrome.downloads.cancel(down.id, function(s) {});
+            var notification = new Notification("成功！", { body: "下载已送往aria2，请前往确认" });
         }
     }
 }
+
 function checkconfig() {
     size = localStorage["size"] * 1024 * 1024;
-    path = localStorage["path"];
+    var storedPath = localStorage["path"];
+    var reg = /\/\/token:([\w-]+)@[\w.-]+(:\d+)?\//;
+    if (reg.test(storedPath)) {
+        var result = reg.exec(storedPath);
+        token = result[1];
+        path = storedPath.replace("token:" + token + "@", "");
+    } else {
+        token = null;
+        path = storedPath;
+    }
     enabled = localStorage["enabled"];
     if (!path || !size) {
-        var notification = new Notification("注意！", {body: "插件尚未配置！"});
-        chrome.tabs.create({"url": "options.html"}, function (s) { });
+        var notification = new Notification("注意！", { body: "插件尚未配置！" });
+        chrome.tabs.create({ "url": "options.html" }, function(s) {});
         localStorage['enabled'] = 0;
         showEnable();
         return 0;
@@ -58,10 +70,12 @@ function checkconfig() {
         return 1;
     }
 }
+
 function send(down) {
     var aria2_obj = combination(down);
     return postaria2obj(aria2_obj);
 }
+
 function postaria2obj(addobj) {
     var httppost = new XMLHttpRequest();
     this.aria2jsonrpcpath = path;
@@ -79,41 +93,39 @@ function postaria2obj(addobj) {
     return "ok";
 
 }
+
 function aria2url_reg(url) {
     if (url.split("@")[0] == url) {
         return null;
     }
     return url.split("@")[0].match("/^(http:\\/\\/\|https:\\/\\/)?(.*)\/")[2];
 }
+
 function combination(down) {
-    if (down.filename == '') {
-        var post_obj = [{
-                "jsonrpc": "2.0",
-                "method": "aria2.addUri",
-                "id": (new Date()).getTime().toString(),
-                "params": [[down.finalUrl], {
-                        "header": "Referer: " + down.referrer
-                    }]
-            }];
-    } else {
-        var post_obj = [{
-                "jsonrpc": "2.0",
-                "method": "aria2.addUri",
-                "id": (new Date()).getTime().toString(),
-                "params": [[down.finalUrl], {
-                        "out": decodeURIComponent(down.filename),
-                        "header": "Referer: " + down.referrer
-                    }]
-            }];
+    var obj = { "header": "Referer: " + down.referrer };
+    if (down.filename != '') {
+        obj["out"] = decodeURIComponent(down.filename);
     }
-    return post_obj;
+    var params = [
+        [down.finalUrl], obj
+    ];
+    if (!!token) {
+        params.unshift("token:" + token);
+    }
+    return [{
+        "jsonrpc": "2.0",
+        "method": "aria2.addUri",
+        "id": (new Date()).getTime().toString(),
+        "params": params
+    }];
 }
 
 function rightadd(info, tab) {
     if (checkconfig() === 0) {
         return 0;
     }
-    var down = {filename: ''}, downarr;
+    var down = { filename: '' },
+        downarr;
     down.referrer = info.pageUrl;
     var urlma = /^\s*(http:|https:|ftp:|magnet:|thunder:|flashget:|qqdl:\?)/;
     var errorcode = 0;
@@ -141,16 +153,18 @@ function rightadd(info, tab) {
             errorcode = 1;
         }
     } else {
-        var notification = new Notification("失败！", {body: "未发现可以下载的链接地址！"});
+        var notification = new Notification("失败！", { body: "未发现可以下载的链接地址！" });
         return 0;
     }
     if (errorcode == 1) {
-        var notification = new Notification("失败！", {body: "添加任务至 aria2 出错！"});
+        var notification = new Notification("失败！", { body: "添加任务至 aria2 出错！" });
     } else if (errorcode == 2) {
-        var notification = new Notification("失败！", {body: "添加" + len + "个任务至 aria2 中有" + errnum + "个出错！"});
+        var notification = new Notification("失败！", { body: "添加" + len + "个任务至 aria2 中有" + errnum + "个出错！" });
     } else {
-        var notification = new Notification("成功！", {body: len + "个下载已送往aria2，请前往确认"});
+        var notification = new Notification("成功！", { body: len + "个下载已送往aria2，请前往确认" });
     }
 }
-chrome.contextMenus.create({"title": "添加到Aria2", "contexts": ["selection", "link"], "onclick": rightadd});
 showEnable();
+chrome.downloads.onDeterminingFilename.addListener(add);
+chrome.contextMenus.create({ "title": "添加到Aria2", "contexts": ["selection", "link"], "onclick": rightadd });
+chrome.browserAction.onClicked.addListener(changeEnable);
